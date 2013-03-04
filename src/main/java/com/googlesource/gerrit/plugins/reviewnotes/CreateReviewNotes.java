@@ -36,8 +36,8 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gerrit.common.data.ApprovalType;
-import com.google.gerrit.common.data.ApprovalTypes;
+import com.google.gerrit.common.data.LabelType;
+import com.google.gerrit.common.data.LabelTypes;
 import com.google.gerrit.reviewdb.client.ApprovalCategory;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSet;
@@ -70,7 +70,7 @@ class CreateReviewNotes {
   private final PersonIdent gerritServerIdent;
   private final AccountCache accountCache;
   private final String anonymousCowardName;
-  private final ApprovalTypes approvalTypes;
+  private final LabelTypes labelTypes;
   private final NotesBranchUtil.Factory notesBranchUtilFactory;
   private final String canonicalWebUrl;
   private final ReviewDb reviewDb;
@@ -85,7 +85,7 @@ class CreateReviewNotes {
   CreateReviewNotes(@GerritPersonIdent final PersonIdent gerritIdent,
       final AccountCache accountCache,
       final @AnonymousCowardName String anonymousCowardName,
-      ApprovalTypes approvalTypes,
+      LabelTypes approvalTypes,
       final NotesBranchUtil.Factory notesBranchUtilFactory,
       final @Nullable @CanonicalWebUrl String canonicalWebUrl,
       final @Assisted ReviewDb reviewDb,
@@ -94,7 +94,7 @@ class CreateReviewNotes {
     this.gerritServerIdent = gerritIdent;
     this.accountCache = accountCache;
     this.anonymousCowardName = anonymousCowardName;
-    this.approvalTypes = approvalTypes;
+    this.labelTypes = approvalTypes;
     this.notesBranchUtilFactory = notesBranchUtilFactory;
     this.canonicalWebUrl = canonicalWebUrl;
     this.reviewDb = reviewDb;
@@ -222,9 +222,9 @@ class CreateReviewNotes {
       } else if (ApprovalCategory.SUBMIT.equals(a.getCategoryId())) {
         submit = a;
       } else {
-        ApprovalType type = approvalTypes.byId(a.getCategoryId());
+        LabelType type = labelTypes.byId(a.getCategoryId().get());
         if (type != null) {
-          fmt.appendApproval(type.getCategory(), a.getValue(),
+          fmt.appendApproval(type, a.getValue(),
               accountCache.get(a.getAccountId()).getAccount());
         }
       }

@@ -14,17 +14,17 @@
 
 package com.googlesource.gerrit.plugins.reviewnotes;
 
-import com.google.gerrit.reviewdb.client.Account;
-import com.google.gerrit.reviewdb.client.ApprovalCategory;
-import com.google.gerrit.reviewdb.client.Branch;
-import com.google.gerrit.reviewdb.client.Change;
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
+
+import com.google.gerrit.common.data.LabelType;
+import com.google.gerrit.common.data.LabelValue;
+import com.google.gerrit.reviewdb.client.Account;
+import com.google.gerrit.reviewdb.client.Change;
 
 /**
  * Formatters for code review note headers.
@@ -51,10 +51,10 @@ class HeaderFormatter {
     sb.append("Change-Id: ").append(changeKey.get()).append("\n");
   }
 
-  void appendApproval(ApprovalCategory category,
-      short value, Account user) {
-    sb.append(category.getLabelName());
-    sb.append(value < 0 ? "-" : "+").append(Math.abs(value)).append(": ");
+	void appendApproval(LabelType label, short value, Account user) {
+    sb.append(label.getName());
+    sb.append(LabelValue.formatValue(value));
+    sb.append(": ");
     appendUserData(user);
     sb.append("\n");
   }
