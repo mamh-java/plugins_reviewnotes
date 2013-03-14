@@ -38,7 +38,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gerrit.common.data.LabelType;
 import com.google.gerrit.common.data.LabelTypes;
-import com.google.gerrit.reviewdb.client.ApprovalCategory;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.PatchSetApproval;
@@ -219,10 +218,10 @@ class CreateReviewNotes {
     for (PatchSetApproval a : approvals) {
       if (a.getValue() == 0) {
         // Ignore 0 values.
-      } else if (ApprovalCategory.SUBMIT.equals(a.getCategoryId())) {
+      } else if (a.isSubmit()) {
         submit = a;
       } else {
-        LabelType type = labelTypes.byId(a.getCategoryId().get());
+        LabelType type = labelTypes.byLabel(a.getLabelId());
         if (type != null) {
           fmt.appendApproval(type, a.getValue(),
               accountCache.get(a.getAccountId()).getAccount());
