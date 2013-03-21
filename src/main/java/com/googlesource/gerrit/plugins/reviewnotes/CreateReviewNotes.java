@@ -84,7 +84,7 @@ class CreateReviewNotes {
   CreateReviewNotes(@GerritPersonIdent final PersonIdent gerritIdent,
       final AccountCache accountCache,
       final @AnonymousCowardName String anonymousCowardName,
-      LabelTypes approvalTypes,
+      final LabelTypes labelTypes,
       final NotesBranchUtil.Factory notesBranchUtilFactory,
       final @Nullable @CanonicalWebUrl String canonicalWebUrl,
       final @Assisted ReviewDb reviewDb,
@@ -93,7 +93,7 @@ class CreateReviewNotes {
     this.gerritServerIdent = gerritIdent;
     this.accountCache = accountCache;
     this.anonymousCowardName = anonymousCowardName;
-    this.labelTypes = approvalTypes;
+    this.labelTypes = labelTypes;
     this.notesBranchUtilFactory = notesBranchUtilFactory;
     this.canonicalWebUrl = canonicalWebUrl;
     this.reviewDb = reviewDb;
