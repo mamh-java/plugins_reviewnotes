@@ -18,6 +18,7 @@ import java.io.IOException;
 
 import org.eclipse.jgit.api.errors.ConcurrentRefUpdateException;
 import org.eclipse.jgit.errors.RepositoryNotFoundException;
+import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.slf4j.Logger;
@@ -26,31 +27,77 @@ import org.slf4j.LoggerFactory;
 import com.google.gerrit.extensions.events.GitReferenceUpdatedListener;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.server.ReviewDb;
+import com.google.gerrit.server.config.GerritServerConfig;
 import com.google.gerrit.server.git.GitRepositoryManager;
+import com.google.gerrit.server.git.ProjectRunnable;
+import com.google.gerrit.server.git.WorkQueue;
+import com.google.gerrit.server.util.RequestScopePropagator;
 import com.google.gwtorm.server.OrmException;
 import com.google.gwtorm.server.SchemaFactory;
 import com.google.inject.Inject;
 
 class RefUpdateListener implements GitReferenceUpdatedListener {
 
-  private static final Logger log =
-      LoggerFactory.getLogger(RefUpdateListener.class);
+  private static final Logger log = LoggerFactory
+      .getLogger(RefUpdateListener.class);
 
   private final CreateReviewNotes.Factory reviewNotesFactory;
   private final SchemaFactory<ReviewDb> schema;
   private final GitRepositoryManager repoManager;
+  private final WorkQueue workQueue;
+  private final RequestScopePropagator requestScopePropagator;
+  private final boolean async;
 
   @Inject
   RefUpdateListener(final CreateReviewNotes.Factory reviewNotesFactory,
       final SchemaFactory<ReviewDb> schema,
-      final GitRepositoryManager repoManager) {
+      final GitRepositoryManager repoManager, final WorkQueue workQueue,
+      final RequestScopePropagator requestScopePropagator,
+      @GerritServerConfig final Config config) {
     this.reviewNotesFactory = reviewNotesFactory;
     this.schema = schema;
     this.repoManager = repoManager;
+    this.workQueue = workQueue;
+    this.requestScopePropagator = requestScopePropagator;
+    this.async = config.getBoolean("reviewnotes", null, "async", false);
   }
 
   @Override
-  public void onGitReferenceUpdated(Event e) {
+  public void onGitReferenceUpdated(final Event e) {
+    if (async) {
+      workQueue.getDefaultQueue().submit(
+          requestScopePropagator.wrap(new ProjectRunnable() {
+            @Override
+            public void run() {
+              createReviewNotes(e);
+            }
+
+            @Override
+            public Project.NameKey getProjectNameKey() {
+              return new Project.NameKey(e.getProjectName());
+            }
+
+            @Override
+            public String getRemoteName() {
+              return null;
+            }
+
+            @Override
+            public boolean hasCustomizedPrint() {
+              return true;
+            }
+
+            @Override
+            public String toString() {
+              return "create-review-notes";
+            }
+          }));
+    } else {
+      createReviewNotes(e);
+    }
+  }
+
+  private void createReviewNotes(Event e) {
     Project.NameKey projectName = new Project.NameKey(e.getProjectName());
     Repository git;
     try {

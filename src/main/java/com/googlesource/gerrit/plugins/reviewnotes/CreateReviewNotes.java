@@ -225,6 +225,9 @@ class CreateReviewNotes {
 
   private void createCodeReviewNote(Change change, PatchSet ps,
       HeaderFormatter fmt) throws OrmException, NoSuchChangeException {
+    // This races with the label normalization/writeback done by MergeOp. It may
+    // repeat some work, but results should be identical except in the case of
+    // an additional race with a permissions change.
     List<PatchSetApproval> approvals = labelNormalizer.normalize(
         change, reviewDb.patchSetApprovals().byPatchSet(ps.getId()).toList());
     PatchSetApproval submit = null;
