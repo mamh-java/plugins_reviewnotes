@@ -48,9 +48,10 @@ import com.google.gerrit.server.GerritPersonIdent;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.config.AnonymousCowardName;
 import com.google.gerrit.server.config.CanonicalWebUrl;
+import com.google.gerrit.server.git.LabelNormalizer;
 import com.google.gerrit.server.git.NotesBranchUtil;
+import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gwtorm.server.OrmException;
-import com.google.gwtorm.server.ResultSet;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 
@@ -70,6 +71,7 @@ class CreateReviewNotes {
   private final AccountCache accountCache;
   private final String anonymousCowardName;
   private final LabelTypes labelTypes;
+  private final LabelNormalizer labelNormalizer;
   private final NotesBranchUtil.Factory notesBranchUtilFactory;
   private final String canonicalWebUrl;
   private final ReviewDb reviewDb;
@@ -85,6 +87,7 @@ class CreateReviewNotes {
       final AccountCache accountCache,
       final @AnonymousCowardName String anonymousCowardName,
       final LabelTypes labelTypes,
+      final LabelNormalizer labelNormalizer,
       final NotesBranchUtil.Factory notesBranchUtilFactory,
       final @Nullable @CanonicalWebUrl String canonicalWebUrl,
       final @Assisted ReviewDb reviewDb,
@@ -94,6 +97,7 @@ class CreateReviewNotes {
     this.accountCache = accountCache;
     this.anonymousCowardName = anonymousCowardName;
     this.labelTypes = labelTypes;
+    this.labelNormalizer = labelNormalizer;
     this.notesBranchUtilFactory = notesBranchUtilFactory;
     this.canonicalWebUrl = canonicalWebUrl;
     this.reviewDb = reviewDb;
@@ -118,7 +122,7 @@ class CreateReviewNotes {
 
     try {
       for (RevCommit c : rw) {
-        ObjectId content = createNoteContent(branch, c);
+        ObjectId content = createNoteContent(c);
         if (content != null) {
           monitor.update(1);
           getNotes().set(c, content);
@@ -143,8 +147,7 @@ class CreateReviewNotes {
         monitor.update(1);
         PatchSet ps = reviewDb.patchSets().get(c.currentPatchSetId());
         ObjectId commitId = ObjectId.fromString(ps.getRevision().get());
-        notes.set(commitId,
-            createNoteContent(c.getDest().get(), rw.parseCommit(commitId)));
+        notes.set(commitId, createNoteContent(rw.parseCommit(commitId)));
       }
     } finally {
       rw.release();
@@ -192,7 +195,7 @@ class CreateReviewNotes {
     }
   }
 
-  private ObjectId createNoteContent(String branch, RevCommit c)
+  private ObjectId createNoteContent(RevCommit c)
       throws OrmException, IOException {
     List<PatchSet> patches = reviewDb.patchSets().byRevision(new RevId(c.name()))
         .toList();
@@ -201,7 +204,11 @@ class CreateReviewNotes {
     if (patches.isEmpty()) {
       return null; // TODO: createNoCodeReviewNote(branch, c, fmt);
     } else if (patches.size() == 1) {
-      createCodeReviewNote(branch, patches.get(0), fmt);
+      try {
+        createCodeReviewNote(patches.get(0), fmt);
+      } catch (NoSuchChangeException e) {
+        throw new IOException(e);
+      }
     } else {
       log.error("Cannot create review note:"
           + " more than one patch set found for the commit " + c.name());
@@ -210,10 +217,16 @@ class CreateReviewNotes {
     return getInseter().insert(Constants.OBJ_BLOB, fmt.toString().getBytes("UTF-8"));
   }
 
-  private void createCodeReviewNote(String branch, PatchSet ps,
-      HeaderFormatter fmt) throws OrmException {
-    ResultSet<PatchSetApproval> approvals =
-        reviewDb.patchSetApprovals().byPatchSet(ps.getId());
+  private void createCodeReviewNote(PatchSet ps, HeaderFormatter fmt)
+      throws OrmException, NoSuchChangeException {
+    createCodeReviewNote(
+        reviewDb.changes().get(ps.getId().getParentKey()), ps, fmt);
+  }
+
+  private void createCodeReviewNote(Change change, PatchSet ps,
+      HeaderFormatter fmt) throws OrmException, NoSuchChangeException {
+    List<PatchSetApproval> approvals = labelNormalizer.normalize(
+        change, reviewDb.patchSetApprovals().byPatchSet(ps.getId()).toList());
     PatchSetApproval submit = null;
     for (PatchSetApproval a : approvals) {
       if (a.getValue() == 0) {
@@ -236,7 +249,7 @@ class CreateReviewNotes {
       fmt.appendReviewedOn(canonicalWebUrl, ps.getId().getParentKey());
     }
     fmt.appendProject(project.get());
-    fmt.appendBranch(branch);
+    fmt.appendBranch(change.getDest().get());
   }
 
   private ObjectInserter getInseter() {
