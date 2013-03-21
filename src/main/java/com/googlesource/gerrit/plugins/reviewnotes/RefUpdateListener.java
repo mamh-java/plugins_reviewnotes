@@ -31,7 +31,6 @@ import com.google.gerrit.server.config.GerritServerConfig;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.git.ProjectRunnable;
 import com.google.gerrit.server.git.WorkQueue;
-import com.google.gerrit.server.util.RequestScopePropagator;
 import com.google.gwtorm.server.OrmException;
 import com.google.gwtorm.server.SchemaFactory;
 import com.google.inject.Inject;
@@ -45,55 +44,52 @@ class RefUpdateListener implements GitReferenceUpdatedListener {
   private final SchemaFactory<ReviewDb> schema;
   private final GitRepositoryManager repoManager;
   private final WorkQueue workQueue;
-  private final RequestScopePropagator requestScopePropagator;
   private final boolean async;
 
   @Inject
   RefUpdateListener(final CreateReviewNotes.Factory reviewNotesFactory,
       final SchemaFactory<ReviewDb> schema,
       final GitRepositoryManager repoManager, final WorkQueue workQueue,
-      final RequestScopePropagator requestScopePropagator,
       @GerritServerConfig final Config config) {
     this.reviewNotesFactory = reviewNotesFactory;
     this.schema = schema;
     this.repoManager = repoManager;
     this.workQueue = workQueue;
-    this.requestScopePropagator = requestScopePropagator;
     this.async = config.getBoolean("reviewnotes", null, "async", false);
   }
 
   @Override
   public void onGitReferenceUpdated(final Event e) {
+    Runnable task = new ProjectRunnable() {
+      @Override
+      public void run() {
+        createReviewNotes(e);
+      }
+
+      @Override
+      public Project.NameKey getProjectNameKey() {
+        return new Project.NameKey(e.getProjectName());
+      }
+
+      @Override
+      public String getRemoteName() {
+        return null;
+      }
+
+      @Override
+      public boolean hasCustomizedPrint() {
+        return true;
+      }
+
+      @Override
+      public String toString() {
+        return "create-review-notes";
+      }
+    };
     if (async) {
-      workQueue.getDefaultQueue().submit(
-          requestScopePropagator.wrap(new ProjectRunnable() {
-            @Override
-            public void run() {
-              createReviewNotes(e);
-            }
-
-            @Override
-            public Project.NameKey getProjectNameKey() {
-              return new Project.NameKey(e.getProjectName());
-            }
-
-            @Override
-            public String getRemoteName() {
-              return null;
-            }
-
-            @Override
-            public boolean hasCustomizedPrint() {
-              return true;
-            }
-
-            @Override
-            public String toString() {
-              return "create-review-notes";
-            }
-          }));
+      workQueue.getDefaultQueue().submit(task);
     } else {
-      createReviewNotes(e);
+      task.run();
     }
   }
 
