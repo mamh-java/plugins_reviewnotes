@@ -117,6 +117,10 @@ class CreateReviewNotes {
 
   void createNotes(String branch, ObjectId oldObjectId, ObjectId newObjectId,
       ProgressMonitor monitor) throws OrmException, IOException {
+    if (ObjectId.zeroId().equals(newObjectId)) {
+      return;
+    }
+
     RevWalk rw = new RevWalk(git);
     try {
       rw.markStart(rw.parseCommit(newObjectId));
