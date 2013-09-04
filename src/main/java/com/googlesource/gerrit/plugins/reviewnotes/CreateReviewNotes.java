@@ -228,7 +228,7 @@ class CreateReviewNotes {
           + " more than one patch set found for the commit " + c.name());
       return null;
     }
-    return getInseter().insert(Constants.OBJ_BLOB, fmt.toString().getBytes("UTF-8"));
+    return getInserter().insert(Constants.OBJ_BLOB, fmt.toString().getBytes("UTF-8"));
   }
 
   private void createCodeReviewNote(PatchSet ps, HeaderFormatter fmt)
@@ -269,7 +269,7 @@ class CreateReviewNotes {
     fmt.appendBranch(change.getDest().get());
   }
 
-  private ObjectInserter getInseter() {
+  private ObjectInserter getInserter() {
     if (inserter == null) {
       inserter = git.newObjectInserter();
     }
