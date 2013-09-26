@@ -43,5 +43,5 @@ EXAMPLES
 To generate all review information:
 
 ```
-  $ java -jar gerrit.war ExportReviewNotes -d site_path --threads 16
+  $ ssh -p 29418 user@review reviewnotes export --threads 16
 ```
