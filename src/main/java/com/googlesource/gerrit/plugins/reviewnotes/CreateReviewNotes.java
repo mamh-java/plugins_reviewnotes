@@ -155,12 +155,13 @@ class CreateReviewNotes {
         monitor = NullProgressMonitor.INSTANCE;
       }
 
-      NoteMap notes = NoteMap.newEmptyMap();
       for (Change c : changes) {
         monitor.update(1);
         PatchSet ps = reviewDb.patchSets().get(c.currentPatchSetId());
         ObjectId commitId = ObjectId.fromString(ps.getRevision().get());
-        notes.set(commitId, createNoteContent(rw.parseCommit(commitId)));
+        RevCommit commit = rw.parseCommit(commitId);
+        getNotes().set(commitId, createNoteContent(commit));
+        getMessage().append("* ").append(commit.getShortMessage()).append("\n");
       }
     } finally {
       rw.release();
