@@ -119,16 +119,13 @@ class RefUpdateListener implements GitReferenceUpdatedListener {
       try {
         CreateReviewNotes crn = reviewNotesFactory.create(
             reviewDb, projectName, git);
-        for (Update u : e.getUpdates()) {
-          if (!u.getRefName().startsWith("refs/heads/")) {
-            continue;
-          }
-          crn.createNotes(u.getRefName(),
-              ObjectId.fromString(u.getOldObjectId()),
-              ObjectId.fromString(u.getNewObjectId()),
+        if (e.getRefName().startsWith("refs/heads/")) {
+          crn.createNotes(e.getRefName(),
+              ObjectId.fromString(e.getOldObjectId()),
+              ObjectId.fromString(e.getNewObjectId()),
               null);
+          crn.commitNotes();
         }
-        crn.commitNotes();
       } catch (OrmException x) {
         log.error(x.getMessage(), x);
       } catch (IOException x) {
