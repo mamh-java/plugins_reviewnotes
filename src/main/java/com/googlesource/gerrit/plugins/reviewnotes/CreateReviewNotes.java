@@ -31,6 +31,8 @@ import com.google.gerrit.server.config.AnonymousCowardName;
 import com.google.gerrit.server.config.CanonicalWebUrl;
 import com.google.gerrit.server.git.LabelNormalizer;
 import com.google.gerrit.server.git.NotesBranchUtil;
+
+import com.google.gerrit.server.notedb.ChangeNotes;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.project.ProjectState;
@@ -76,6 +78,7 @@ class CreateReviewNotes {
   private final String anonymousCowardName;
   private final LabelTypes labelTypes;
   private final ApprovalsUtil approvalsUtil;
+  private final ChangeNotes.Factory changeNotesFactory;
   private final LabelNormalizer labelNormalizer;
   private final NotesBranchUtil.Factory notesBranchUtilFactory;
   private final String canonicalWebUrl;
@@ -94,6 +97,7 @@ class CreateReviewNotes {
       final ProjectCache projectCache,
       final ApprovalsUtil approvalsUtil,
       final LabelNormalizer labelNormalizer,
+      final ChangeNotes.Factory changeNotesFactory,
       final NotesBranchUtil.Factory notesBranchUtilFactory,
       final @Nullable @CanonicalWebUrl String canonicalWebUrl,
       final @Assisted ReviewDb reviewDb,
@@ -112,6 +116,7 @@ class CreateReviewNotes {
     }
     this.approvalsUtil = approvalsUtil;
     this.labelNormalizer = labelNormalizer;
+    this.changeNotesFactory = changeNotesFactory;
     this.notesBranchUtilFactory = notesBranchUtilFactory;
     this.canonicalWebUrl = canonicalWebUrl;
     this.reviewDb = reviewDb;
@@ -267,8 +272,11 @@ class CreateReviewNotes {
     // This races with the label normalization/writeback done by MergeOp. It may
     // repeat some work, but results should be identical except in the case of
     // an additional race with a permissions change.
-    List<PatchSetApproval> approvals = labelNormalizer.normalize(
-        change, approvalsUtil.byPatchSet(reviewDb, ps.getId()));
+    // TODO(dborowitz): These will eventually be stamped in the ChangeNotes at
+    // commit time so we will be able to skip this normalization step.
+    ChangeNotes changeNotes = changeNotesFactory.create(change);
+    List<PatchSetApproval> approvals = labelNormalizer.normalize(change,
+        approvalsUtil.byPatchSet(reviewDb, changeNotes, ps.getId()));
     PatchSetApproval submit = null;
     for (PatchSetApproval a : approvals) {
       if (a.getValue() == 0) {
