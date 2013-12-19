@@ -14,12 +14,14 @@
 
 package com.googlesource.gerrit.plugins.reviewnotes;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import com.google.gerrit.reviewdb.client.Change;
+import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.reviewdb.server.ReviewDb;
+import com.google.gerrit.server.git.GitRepositoryManager;
+import com.google.gerrit.sshd.SshCommand;
+import com.google.gwtorm.server.OrmException;
+import com.google.gwtorm.server.SchemaFactory;
+import com.google.inject.Inject;
 
 import org.eclipse.jgit.api.errors.ConcurrentRefUpdateException;
 import org.eclipse.jgit.errors.RepositoryNotFoundException;
@@ -29,14 +31,12 @@ import org.eclipse.jgit.lib.ThreadSafeProgressMonitor;
 import org.eclipse.jgit.util.BlockList;
 import org.kohsuke.args4j.Option;
 
-import com.google.gerrit.reviewdb.client.Change;
-import com.google.gerrit.reviewdb.client.Project;
-import com.google.gerrit.reviewdb.server.ReviewDb;
-import com.google.gerrit.server.git.GitRepositoryManager;
-import com.google.gerrit.sshd.SshCommand;
-import com.google.gwtorm.server.OrmException;
-import com.google.gwtorm.server.SchemaFactory;
-import com.google.inject.Inject;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /** Export review notes for all submitted changes in all projects. */
 public class ExportReviewNotes extends SshCommand {
