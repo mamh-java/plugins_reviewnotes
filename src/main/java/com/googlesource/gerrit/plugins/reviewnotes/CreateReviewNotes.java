@@ -31,7 +31,6 @@ import com.google.gerrit.server.config.AnonymousCowardName;
 import com.google.gerrit.server.config.CanonicalWebUrl;
 import com.google.gerrit.server.git.LabelNormalizer;
 import com.google.gerrit.server.git.NotesBranchUtil;
-
 import com.google.gerrit.server.notedb.ChangeNotes;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectCache;
@@ -275,10 +274,11 @@ class CreateReviewNotes {
     // TODO(dborowitz): These will eventually be stamped in the ChangeNotes at
     // commit time so we will be able to skip this normalization step.
     ChangeNotes changeNotes = changeNotesFactory.create(change);
-    List<PatchSetApproval> approvals = labelNormalizer.normalize(change,
-        approvalsUtil.byPatchSet(reviewDb, changeNotes, ps.getId()));
+    List<PatchSetApproval> curr =
+        approvalsUtil.byPatchSet(reviewDb, changeNotes, ps.getId());
     PatchSetApproval submit = null;
-    for (PatchSetApproval a : approvals) {
+    for (PatchSetApproval a :
+        labelNormalizer.normalize(change, curr).getNormalized()) {
       if (a.getValue() == 0) {
         // Ignore 0 values.
       } else if (a.isSubmit()) {
