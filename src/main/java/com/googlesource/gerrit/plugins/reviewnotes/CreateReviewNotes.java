@@ -26,12 +26,12 @@ import com.google.gerrit.reviewdb.client.RevId;
 import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.ApprovalsUtil;
 import com.google.gerrit.server.GerritPersonIdent;
+import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.config.AnonymousCowardName;
 import com.google.gerrit.server.config.CanonicalWebUrl;
-import com.google.gerrit.server.git.LabelNormalizer;
 import com.google.gerrit.server.git.NotesBranchUtil;
-import com.google.gerrit.server.notedb.ChangeNotes;
+import com.google.gerrit.server.project.ChangeControl;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.project.ProjectState;
@@ -77,8 +77,8 @@ class CreateReviewNotes {
   private final String anonymousCowardName;
   private final LabelTypes labelTypes;
   private final ApprovalsUtil approvalsUtil;
-  private final ChangeNotes.Factory changeNotesFactory;
-  private final LabelNormalizer labelNormalizer;
+  private final ChangeControl.GenericFactory changeControlFactory;
+  private final IdentifiedUser.GenericFactory userFactory;
   private final NotesBranchUtil.Factory notesBranchUtilFactory;
   private final String canonicalWebUrl;
   private final ReviewDb reviewDb;
@@ -95,8 +95,8 @@ class CreateReviewNotes {
       final @AnonymousCowardName String anonymousCowardName,
       final ProjectCache projectCache,
       final ApprovalsUtil approvalsUtil,
-      final LabelNormalizer labelNormalizer,
-      final ChangeNotes.Factory changeNotesFactory,
+      final ChangeControl.GenericFactory changeControlFactory,
+      final IdentifiedUser.GenericFactory userFactory,
       final NotesBranchUtil.Factory notesBranchUtilFactory,
       final @Nullable @CanonicalWebUrl String canonicalWebUrl,
       final @Assisted ReviewDb reviewDb,
@@ -114,8 +114,8 @@ class CreateReviewNotes {
       this.labelTypes = projectState.getLabelTypes();
     }
     this.approvalsUtil = approvalsUtil;
-    this.labelNormalizer = labelNormalizer;
-    this.changeNotesFactory = changeNotesFactory;
+    this.changeControlFactory = changeControlFactory;
+    this.userFactory = userFactory;
     this.notesBranchUtilFactory = notesBranchUtilFactory;
     this.canonicalWebUrl = canonicalWebUrl;
     this.reviewDb = reviewDb;
@@ -273,12 +273,11 @@ class CreateReviewNotes {
     // an additional race with a permissions change.
     // TODO(dborowitz): These will eventually be stamped in the ChangeNotes at
     // commit time so we will be able to skip this normalization step.
-    ChangeNotes changeNotes = changeNotesFactory.create(change);
-    List<PatchSetApproval> curr =
-        approvalsUtil.byPatchSet(reviewDb, changeNotes, ps.getId());
+    ChangeControl ctl = changeControlFactory.controlFor(
+        change, userFactory.create(change.getOwner()));
     PatchSetApproval submit = null;
     for (PatchSetApproval a :
-        labelNormalizer.normalize(change, curr).getNormalized()) {
+        approvalsUtil.byPatchSet(reviewDb, ctl, ps.getId())) {
       if (a.getValue() == 0) {
         // Ignore 0 values.
       } else if (a.isSubmit()) {
