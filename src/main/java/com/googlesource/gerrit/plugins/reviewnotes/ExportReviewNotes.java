@@ -109,7 +109,7 @@ public class ExportReviewNotes extends SshCommand {
   }
 
   private void export(ReviewDb db, Project.NameKey project, List<Change> changes)
-      throws IOException, OrmException, InterruptedException {
+      throws IOException, OrmException {
     final Repository git;
     try {
       git = gitManager.openRepository(project);
@@ -170,11 +170,7 @@ public class ExportReviewNotes extends SshCommand {
           if (next != null) {
             try {
               export(db, next.getKey(), next.getValue());
-            } catch (IOException e) {
-              stderr.print(e.getMessage());
-            } catch (OrmException e) {
-              stderr.print(e.getMessage());
-            } catch (InterruptedException e) {
+            } catch (OrmException | IOException e) {
               stderr.print(e.getMessage());
             }
           } else {
