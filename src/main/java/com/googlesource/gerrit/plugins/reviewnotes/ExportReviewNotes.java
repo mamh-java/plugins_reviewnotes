@@ -91,13 +91,12 @@ public class ExportReviewNotes extends SshCommand {
   }
 
   private Map<Project.NameKey, List<Change>> cluster(List<Change> changes) {
-    HashMap<Project.NameKey, List<Change>> m =
-        new HashMap<Project.NameKey, List<Change>>();
+    HashMap<Project.NameKey, List<Change>> m = new HashMap<>();
     for (Change change : changes) {
       if (change.getStatus() == Change.Status.MERGED) {
         List<Change> l = m.get(change.getProject());
         if (l == null) {
-          l = new BlockList<Change>();
+          l = new BlockList<>();
           m.put(change.getProject(), l);
         }
         l.add(change);
