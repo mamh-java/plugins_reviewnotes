@@ -92,16 +92,16 @@ class CreateReviewNotes {
   @Inject
   CreateReviewNotes(@GerritPersonIdent final PersonIdent gerritIdent,
       final AccountCache accountCache,
-      final @AnonymousCowardName String anonymousCowardName,
+      @AnonymousCowardName final String anonymousCowardName,
       final ProjectCache projectCache,
       final ApprovalsUtil approvalsUtil,
       final ChangeControl.GenericFactory changeControlFactory,
       final IdentifiedUser.GenericFactory userFactory,
       final NotesBranchUtil.Factory notesBranchUtilFactory,
-      final @Nullable @CanonicalWebUrl String canonicalWebUrl,
-      final @Assisted ReviewDb reviewDb,
-      final @Assisted Project.NameKey project,
-      final @Assisted Repository git) {
+      @Nullable @CanonicalWebUrl final String canonicalWebUrl,
+      @Assisted final ReviewDb reviewDb,
+      @Assisted final Project.NameKey project,
+      @Assisted final Repository git) {
     this.gerritServerIdent = gerritIdent;
     this.accountCache = accountCache;
     this.anonymousCowardName = anonymousCowardName;
