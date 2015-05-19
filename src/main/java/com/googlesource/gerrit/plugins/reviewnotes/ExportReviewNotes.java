@@ -81,7 +81,7 @@ public class ExportReviewNotes extends SshCommand {
       db = database.open();
       return db.changes().all().toList();
     } catch (OrmException e) {
-      stderr.print("Cannot read changes from database " + e.getMessage());
+      stderr.println("Cannot read changes from database " + e.getMessage());
       return Collections.emptyList();
     } finally {
       if (db != null) {
@@ -113,6 +113,7 @@ public class ExportReviewNotes extends SshCommand {
     try {
       git = gitManager.openRepository(project);
     } catch (RepositoryNotFoundException e) {
+      stderr.println("Unable to open project: " + project.get());
       return;
     }
     try {
@@ -120,7 +121,7 @@ public class ExportReviewNotes extends SshCommand {
       crn.createNotes(changes, monitor);
       crn.commitNotes();
     } catch (ConcurrentRefUpdateException e) {
-      stderr.print(e.getMessage());
+      stderr.println(e.getMessage());
     } finally {
       git.close();
     }
@@ -160,7 +161,7 @@ public class ExportReviewNotes extends SshCommand {
       try {
         db = database.open();
       } catch (OrmException e) {
-        stderr.print(e.getMessage());
+        stderr.println(e.getMessage());
         return;
       }
       try {
@@ -170,7 +171,7 @@ public class ExportReviewNotes extends SshCommand {
             try {
               export(db, next.getKey(), next.getValue());
             } catch (OrmException | IOException e) {
-              stderr.print(e.getMessage());
+              stderr.println(e.getMessage());
             }
           } else {
             break;
