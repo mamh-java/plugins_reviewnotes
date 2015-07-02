@@ -14,8 +14,7 @@ not included by default.  It has to be manually fetched:
   $ git fetch origin refs/notes/review:refs/notes/review
 ```
 
-It is also possible to [configure git][1] to always to always fetch
-`refs/notes/review`:
+It is also possible to [configure git][1] to always fetch `refs/notes/review`:
 
 ```
   $ git config --add remote.origin.fetch refs/notes/review:refs/notes/review
