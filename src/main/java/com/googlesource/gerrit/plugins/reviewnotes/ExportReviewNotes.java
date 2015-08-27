@@ -103,21 +103,14 @@ public class ExportReviewNotes extends SshCommand {
 
   private void export(ReviewDb db, Project.NameKey project, List<Change> changes)
       throws IOException, OrmException {
-    final Repository git;
-    try {
-      git = gitManager.openRepository(project);
-    } catch (RepositoryNotFoundException e) {
-      stderr.println("Unable to open project: " + project.get());
-      return;
-    }
-    try {
+    try (Repository git = gitManager.openRepository(project)) {
       CreateReviewNotes crn = reviewNotesFactory.create(db, project, git);
       crn.createNotes(changes, monitor);
       crn.commitNotes();
+    } catch (RepositoryNotFoundException e) {
+      stderr.println("Unable to open project: " + project.get());
     } catch (ConcurrentRefUpdateException e) {
       stderr.println(e.getMessage());
-    } finally {
-      git.close();
     }
   }
 
