@@ -17,12 +17,10 @@ package com.googlesource.gerrit.plugins.reviewnotes;
 import com.google.gerrit.common.Nullable;
 import com.google.gerrit.common.data.LabelType;
 import com.google.gerrit.common.data.LabelTypes;
-import com.google.gerrit.reviewdb.client.Branch;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSet;
 import com.google.gerrit.reviewdb.client.PatchSetApproval;
 import com.google.gerrit.reviewdb.client.Project;
-import com.google.gerrit.reviewdb.client.RevId;
 import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.ApprovalsUtil;
 import com.google.gerrit.server.GerritPersonIdent;
@@ -35,8 +33,11 @@ import com.google.gerrit.server.project.ChangeControl;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.project.ProjectState;
+import com.google.gerrit.server.query.change.ChangeData;
+import com.google.gerrit.server.query.change.InternalChangeQuery;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
 
 import org.eclipse.jgit.api.errors.ConcurrentRefUpdateException;
@@ -80,6 +81,7 @@ class CreateReviewNotes {
   private final ChangeControl.GenericFactory changeControlFactory;
   private final IdentifiedUser.GenericFactory userFactory;
   private final NotesBranchUtil.Factory notesBranchUtilFactory;
+  private final Provider<InternalChangeQuery> queryProvider;
   private final String canonicalWebUrl;
   private final ReviewDb reviewDb;
   private final Project.NameKey project;
@@ -98,6 +100,7 @@ class CreateReviewNotes {
       final ChangeControl.GenericFactory changeControlFactory,
       final IdentifiedUser.GenericFactory userFactory,
       final NotesBranchUtil.Factory notesBranchUtilFactory,
+      final Provider<InternalChangeQuery> queryProvider,
       @Nullable @CanonicalWebUrl final String canonicalWebUrl,
       @Assisted final ReviewDb reviewDb,
       @Assisted final Project.NameKey project,
@@ -117,6 +120,7 @@ class CreateReviewNotes {
     this.changeControlFactory = changeControlFactory;
     this.userFactory = userFactory;
     this.notesBranchUtilFactory = notesBranchUtilFactory;
+    this.queryProvider = queryProvider;
     this.canonicalWebUrl = canonicalWebUrl;
     this.reviewDb = reviewDb;
     this.project = project;
@@ -235,23 +239,16 @@ class CreateReviewNotes {
 
   private PatchSet loadPatchSet(RevCommit c, String destBranch)
       throws OrmException {
-    List<PatchSet> patches = reviewDb.patchSets().byRevision(new RevId(c.name()))
-        .toList();
-    if (patches.isEmpty()) {
-      return null; // TODO: createNoCodeReviewNote(branch, c, fmt);
-    } else if (patches.size() == 1) {
-      return patches.get(0);
-    } else {
-      Branch.NameKey dest = new Branch.NameKey(project, destBranch);
-      for (PatchSet ps : patches) {
-        Change.Id cid = ps.getId().getParentKey();
-        Change change = reviewDb.changes().get(cid);
-        if (change.getDest().equals(dest)) {
+    String hash = c.name();
+    for (ChangeData cd : queryProvider.get()
+        .byBranchCommit(project.get(), destBranch, hash)) {
+      for (PatchSet ps : cd.patchSets()) {
+        if (ps.getRevision().matches(hash)) {
           return ps;
         }
       }
     }
-    return null;
+    return null; // TODO: createNoCodeReviewNote(branch, c, fmt);
   }
 
   private void createCodeReviewNote(PatchSet ps, HeaderFormatter fmt)
