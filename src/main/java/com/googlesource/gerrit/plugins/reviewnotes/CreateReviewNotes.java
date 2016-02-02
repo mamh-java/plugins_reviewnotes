@@ -29,6 +29,7 @@ import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.config.AnonymousCowardName;
 import com.google.gerrit.server.config.CanonicalWebUrl;
 import com.google.gerrit.server.git.NotesBranchUtil;
+import com.google.gerrit.server.notedb.ChangeNotes;
 import com.google.gerrit.server.project.ChangeControl;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectCache;
@@ -79,6 +80,7 @@ class CreateReviewNotes {
   private final LabelTypes labelTypes;
   private final ApprovalsUtil approvalsUtil;
   private final ChangeControl.GenericFactory changeControlFactory;
+  private final ChangeNotes.Factory notesFactory;
   private final IdentifiedUser.GenericFactory userFactory;
   private final NotesBranchUtil.Factory notesBranchUtilFactory;
   private final Provider<InternalChangeQuery> queryProvider;
@@ -92,19 +94,20 @@ class CreateReviewNotes {
   private StringBuilder message;
 
   @Inject
-  CreateReviewNotes(@GerritPersonIdent final PersonIdent gerritIdent,
-      final AccountCache accountCache,
-      @AnonymousCowardName final String anonymousCowardName,
-      final ProjectCache projectCache,
-      final ApprovalsUtil approvalsUtil,
-      final ChangeControl.GenericFactory changeControlFactory,
-      final IdentifiedUser.GenericFactory userFactory,
-      final NotesBranchUtil.Factory notesBranchUtilFactory,
-      final Provider<InternalChangeQuery> queryProvider,
-      @Nullable @CanonicalWebUrl final String canonicalWebUrl,
-      @Assisted final ReviewDb reviewDb,
-      @Assisted final Project.NameKey project,
-      @Assisted final Repository git) {
+  CreateReviewNotes(@GerritPersonIdent PersonIdent gerritIdent,
+      AccountCache accountCache,
+      @AnonymousCowardName String anonymousCowardName,
+      ProjectCache projectCache,
+      ApprovalsUtil approvalsUtil,
+      ChangeControl.GenericFactory changeControlFactory,
+      ChangeNotes.Factory notesFactory,
+      IdentifiedUser.GenericFactory userFactory,
+      NotesBranchUtil.Factory notesBranchUtilFactory,
+      Provider<InternalChangeQuery> queryProvider,
+      @Nullable @CanonicalWebUrl String canonicalWebUrl,
+      @Assisted ReviewDb reviewDb,
+      @Assisted Project.NameKey project,
+      @Assisted Repository git) {
     this.gerritServerIdent = gerritIdent;
     this.accountCache = accountCache;
     this.anonymousCowardName = anonymousCowardName;
@@ -118,6 +121,7 @@ class CreateReviewNotes {
     }
     this.approvalsUtil = approvalsUtil;
     this.changeControlFactory = changeControlFactory;
+    this.notesFactory = notesFactory;
     this.userFactory = userFactory;
     this.notesBranchUtilFactory = notesBranchUtilFactory;
     this.queryProvider = queryProvider;
@@ -253,19 +257,16 @@ class CreateReviewNotes {
 
   private void createCodeReviewNote(PatchSet ps, HeaderFormatter fmt)
       throws OrmException, NoSuchChangeException {
-    createCodeReviewNote(
-        reviewDb.changes().get(ps.getId().getParentKey()), ps, fmt);
-  }
-
-  private void createCodeReviewNote(Change change, PatchSet ps,
-      HeaderFormatter fmt) throws OrmException, NoSuchChangeException {
     // This races with the label normalization/writeback done by MergeOp. It may
     // repeat some work, but results should be identical except in the case of
     // an additional race with a permissions change.
     // TODO(dborowitz): These will eventually be stamped in the ChangeNotes at
     // commit time so we will be able to skip this normalization step.
+    ChangeNotes notes =
+        notesFactory.create(reviewDb, project, ps.getId().getParentKey());
+    Change change = notes.getChange();
     ChangeControl ctl = changeControlFactory.controlFor(
-        change, userFactory.create(change.getOwner()));
+        notes, userFactory.create(change.getOwner()));
     PatchSetApproval submit = null;
     for (PatchSetApproval a :
         approvalsUtil.byPatchSet(reviewDb, ctl, ps.getId())) {
