@@ -14,6 +14,8 @@
 
 package com.googlesource.gerrit.plugins.reviewnotes;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.server.ReviewDb;
@@ -28,12 +30,10 @@ import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.TextProgressMonitor;
 import org.eclipse.jgit.lib.ThreadSafeProgressMonitor;
-import org.eclipse.jgit.util.BlockList;
 import org.kohsuke.args4j.Option;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -52,7 +52,7 @@ public class ExportReviewNotes extends SshCommand {
   @Inject
   private CreateReviewNotes.Factory reviewNotesFactory;
 
-  private Map<Project.NameKey, List<Change>> changes;
+  private ListMultimap<Project.NameKey, Change> changes;
   private ThreadSafeProgressMonitor monitor;
 
   @Override
@@ -84,16 +84,11 @@ public class ExportReviewNotes extends SshCommand {
     }
   }
 
-  private Map<Project.NameKey, List<Change>> cluster(List<Change> changes) {
-    HashMap<Project.NameKey, List<Change>> m = new HashMap<>();
+  private ListMultimap<Project.NameKey, Change> cluster(List<Change> changes) {
+    ListMultimap<Project.NameKey, Change> m = ArrayListMultimap.create();
     for (Change change : changes) {
       if (change.getStatus() == Change.Status.MERGED) {
-        List<Change> l = m.get(change.getProject());
-        if (l == null) {
-          l = new BlockList<>();
-          m.put(change.getProject(), l);
-        }
-        l.add(change);
+        m.put(change.getProject(), change);
       } else {
         monitor.update(1);
       }
@@ -121,7 +116,7 @@ public class ExportReviewNotes extends SshCommand {
       }
 
       final Project.NameKey name = changes.keySet().iterator().next();
-      final List<Change> list = changes.remove(name);
+      final List<Change> list = changes.removeAll(name);
       return new Map.Entry<Project.NameKey, List<Change>>() {
         @Override
         public Project.NameKey getKey() {
