@@ -274,7 +274,7 @@ class CreateReviewNotes {
         approvalsUtil.byPatchSet(reviewDb, ctl, ps.getId())) {
       if (a.getValue() == 0) {
         // Ignore 0 values.
-      } else if (a.isSubmit()) {
+      } else if (a.isLegacySubmit()) {
         submit = a;
       } else {
         LabelType type = labelTypes.byLabel(a.getLabelId());
