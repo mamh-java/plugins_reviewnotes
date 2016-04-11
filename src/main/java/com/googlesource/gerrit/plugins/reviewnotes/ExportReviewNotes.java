@@ -133,7 +133,7 @@ public class ExportReviewNotes extends SshCommand {
   private class Worker extends Thread {
     @Override
     public void run() {
-      try (ReviewDb db = database.open()){
+      try (ReviewDb db = database.open()) {
         for (;;) {
           Map.Entry<Project.NameKey, List<ChangeNotes>> next = next();
           if (next != null) {
