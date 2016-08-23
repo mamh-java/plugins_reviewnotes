@@ -3,7 +3,7 @@
 
 NAME
 ----
-@PLUGIN@ export - Export successful reviews to [refs/notes/review](refs-notes-review.html)
+@PLUGIN@ export - Export successful reviews to [refs/notes/review](refs-notes-review.md)
 
 SYNOPSIS
 --------
