@@ -16,6 +16,7 @@ package com.googlesource.gerrit.plugins.reviewnotes;
 
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Maps;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.server.ReviewDb;
@@ -104,24 +105,8 @@ public class ExportReviewNotes extends SshCommand {
         return null;
       }
 
-      final Project.NameKey name = changes.keySet().iterator().next();
-      final List<ChangeNotes> list = changes.removeAll(name);
-      return new Map.Entry<Project.NameKey, List<ChangeNotes>>() {
-        @Override
-        public Project.NameKey getKey() {
-          return name;
-        }
-
-        @Override
-        public List<ChangeNotes> getValue() {
-          return list;
-        }
-
-        @Override
-        public List<ChangeNotes> setValue(List<ChangeNotes> value) {
-          throw new UnsupportedOperationException();
-        }
-      };
+      Project.NameKey name = changes.keySet().iterator().next();
+      return Maps.immutableEntry(name, changes.removeAll(name));
     }
   }
 
