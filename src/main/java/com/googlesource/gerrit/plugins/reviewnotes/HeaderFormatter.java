@@ -51,7 +51,7 @@ class HeaderFormatter {
     sb.append("Change-Id: ").append(changeKey.get()).append("\n");
   }
 
-	void appendApproval(LabelType label, short value, Account user) {
+  void appendApproval(LabelType label, short value, Account user) {
     sb.append(label.getName());
     sb.append(LabelValue.formatValue(value));
     sb.append(": ");
