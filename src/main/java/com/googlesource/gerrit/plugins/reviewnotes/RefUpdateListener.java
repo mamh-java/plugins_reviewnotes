@@ -45,10 +45,10 @@ class RefUpdateListener implements GitReferenceUpdatedListener {
 
   @Inject
   RefUpdateListener(
-      final CreateReviewNotes.Factory reviewNotesFactory,
-      final SchemaFactory<ReviewDb> schema,
-      final GitRepositoryManager repoManager,
-      final WorkQueue workQueue,
+      CreateReviewNotes.Factory reviewNotesFactory,
+      SchemaFactory<ReviewDb> schema,
+      GitRepositoryManager repoManager,
+      WorkQueue workQueue,
       @GerritServerConfig final Config config) {
     this.reviewNotesFactory = reviewNotesFactory;
     this.schema = schema;
@@ -58,7 +58,7 @@ class RefUpdateListener implements GitReferenceUpdatedListener {
   }
 
   @Override
-  public void onGitReferenceUpdated(final Event e) {
+  public void onGitReferenceUpdated(Event e) {
     Runnable task =
         new ProjectRunnable() {
           @Override
