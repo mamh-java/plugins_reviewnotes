@@ -49,7 +49,7 @@ class RefUpdateListener implements GitReferenceUpdatedListener {
       SchemaFactory<ReviewDb> schema,
       GitRepositoryManager repoManager,
       WorkQueue workQueue,
-      @GerritServerConfig final Config config) {
+      @GerritServerConfig Config config) {
     this.reviewNotesFactory = reviewNotesFactory;
     this.schema = schema;
     this.repoManager = repoManager;
