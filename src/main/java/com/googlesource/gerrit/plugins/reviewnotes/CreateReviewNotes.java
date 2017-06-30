@@ -268,7 +268,7 @@ class CreateReviewNotes {
     ChangeControl ctl =
         changeControlFactory.controlFor(notes, userFactory.create(change.getOwner()));
     PatchSetApproval submit = null;
-    for (PatchSetApproval a : approvalsUtil.byPatchSet(reviewDb, ctl, ps.getId())) {
+    for (PatchSetApproval a : approvalsUtil.byPatchSet(reviewDb, ctl, ps.getId(), null, null)) {
       if (a.getValue() == 0) {
         // Ignore 0 values.
       } else if (a.isLegacySubmit()) {
