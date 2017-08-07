@@ -103,12 +103,15 @@ public class ExportReviewNotes extends SshCommand {
           }
           return null;
         },
-        new RetryListener() {
-          @Override
-          public <V> void onRetry(Attempt<V> attempt) {
-            monitor.update(-notes.size());
-          }
-        });
+        RetryHelper.options()
+            .listener(
+                new RetryListener() {
+                  @Override
+                  public <V> void onRetry(Attempt<V> attempt) {
+                    monitor.update(-notes.size());
+                  }
+                })
+            .build());
   }
 
   private Map.Entry<Project.NameKey, List<ChangeNotes>> next() {
