@@ -31,7 +31,6 @@ import com.google.gerrit.server.config.CanonicalWebUrl;
 import com.google.gerrit.server.git.LockFailureException;
 import com.google.gerrit.server.git.NotesBranchUtil;
 import com.google.gerrit.server.notedb.ChangeNotes;
-import com.google.gerrit.server.project.ChangeControl;
 import com.google.gerrit.server.project.NoSuchChangeException;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.project.ProjectState;
@@ -75,7 +74,6 @@ class CreateReviewNotes {
   private final String anonymousCowardName;
   private final LabelTypes labelTypes;
   private final ApprovalsUtil approvalsUtil;
-  private final ChangeControl.GenericFactory changeControlFactory;
   private final ChangeNotes.Factory notesFactory;
   private final IdentifiedUser.GenericFactory userFactory;
   private final NotesBranchUtil.Factory notesBranchUtilFactory;
@@ -96,7 +94,6 @@ class CreateReviewNotes {
       @AnonymousCowardName String anonymousCowardName,
       ProjectCache projectCache,
       ApprovalsUtil approvalsUtil,
-      ChangeControl.GenericFactory changeControlFactory,
       ChangeNotes.Factory notesFactory,
       IdentifiedUser.GenericFactory userFactory,
       NotesBranchUtil.Factory notesBranchUtilFactory,
@@ -119,7 +116,6 @@ class CreateReviewNotes {
       this.labelTypes = projectState.getLabelTypes();
     }
     this.approvalsUtil = approvalsUtil;
-    this.changeControlFactory = changeControlFactory;
     this.notesFactory = notesFactory;
     this.userFactory = userFactory;
     this.notesBranchUtilFactory = notesBranchUtilFactory;
@@ -265,10 +261,10 @@ class CreateReviewNotes {
     // TODO(dborowitz): These will eventually be stamped in the ChangeNotes at
     // commit time so we will be able to skip this normalization step.
     Change change = notes.getChange();
-    ChangeControl ctl =
-        changeControlFactory.controlFor(notes, userFactory.create(change.getOwner()));
     PatchSetApproval submit = null;
-    for (PatchSetApproval a : approvalsUtil.byPatchSet(reviewDb, ctl, ps.getId(), null, null)) {
+    for (PatchSetApproval a :
+        approvalsUtil.byPatchSet(
+            reviewDb, notes, userFactory.create(change.getOwner()), ps.getId(), null, null)) {
       if (a.getValue() == 0) {
         // Ignore 0 values.
       } else if (a.isLegacySubmit()) {
