@@ -16,6 +16,7 @@ package com.googlesource.gerrit.plugins.reviewnotes;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import com.google.common.base.Strings;
 import com.google.gerrit.common.data.LabelType;
 import com.google.gerrit.common.data.LabelValue;
 import com.google.gerrit.reviewdb.client.Account;
@@ -84,14 +85,14 @@ class HeaderFormatter {
 
     if (account.isPresent()) {
       String fullName = account.get().getFullName();
-      if (fullName != null && !fullName.isEmpty()) {
+      if (!Strings.isNullOrEmpty(fullName)) {
         sb.append(fullName);
         needSpace = true;
         wroteData = true;
       }
 
       String preferredEmail = account.get().getPreferredEmail();
-      if (preferredEmail != null && !preferredEmail.isEmpty()) {
+      if (!Strings.isNullOrEmpty(preferredEmail)) {
         if (needSpace) {
           sb.append(" ");
         }
