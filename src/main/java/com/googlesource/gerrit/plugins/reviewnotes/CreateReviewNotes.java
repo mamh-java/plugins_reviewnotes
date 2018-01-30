@@ -277,14 +277,14 @@ class CreateReviewNotes {
               type,
               a.getValue(),
               a.getAccountId(),
-              accountCache.maybeGet(a.getAccountId()).map(AccountState::getAccount));
+              accountCache.get(a.getAccountId()).map(AccountState::getAccount));
         }
       }
     }
     if (submit != null) {
       fmt.appendSubmittedBy(
           submit.getAccountId(),
-          accountCache.maybeGet(submit.getAccountId()).map(AccountState::getAccount));
+          accountCache.get(submit.getAccountId()).map(AccountState::getAccount));
       fmt.appendSubmittedAt(submit.getGranted());
     }
     if (canonicalWebUrl != null) {
