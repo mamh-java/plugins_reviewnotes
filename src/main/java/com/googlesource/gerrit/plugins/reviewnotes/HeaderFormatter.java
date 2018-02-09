@@ -48,10 +48,6 @@ class HeaderFormatter {
     this.anonymousCowardName = anonymousCowardName;
   }
 
-  void appendChangeId(Change.Key changeKey) {
-    sb.append("Change-Id: ").append(changeKey.get()).append("\n");
-  }
-
   /**
    * Appends a header for an approval.
    *
