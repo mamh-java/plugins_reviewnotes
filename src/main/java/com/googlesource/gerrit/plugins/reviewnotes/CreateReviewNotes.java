@@ -263,7 +263,7 @@ class CreateReviewNotes {
     PatchSetApproval submit = null;
     for (PatchSetApproval a :
         approvalsUtil.byPatchSet(
-            reviewDb, notes, userFactory.create(change.getOwner()), ps.getId(), null, null)) {
+            reviewDb, notes, ps.getId(), null, null)) {
       if (a.getValue() == 0) {
         // Ignore 0 values.
       } else if (a.isLegacySubmit()) {
