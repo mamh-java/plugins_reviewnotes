@@ -199,8 +199,9 @@ class CreateReviewNotes {
     }
   }
 
-  private void markUninteresting(Repository git, String branch, RevWalk rw, ObjectId oldObjectId) {
-    for (Ref r : git.getAllRefs().values()) {
+  private void markUninteresting(Repository git, String branch, RevWalk rw, ObjectId oldObjectId)
+      throws IOException {
+    for (Ref r : git.getRefDatabase().getRefs()) {
       try {
         if (r.getName().equals(branch)) {
           if (!ObjectId.zeroId().equals(oldObjectId)) {
