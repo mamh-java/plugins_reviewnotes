@@ -17,6 +17,7 @@ package com.googlesource.gerrit.plugins.reviewnotes;
 import com.google.gerrit.extensions.events.GitReferenceUpdatedListener;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.reviewdb.client.RefNames;
 import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.config.GerritServerConfig;
 import com.google.gerrit.server.git.GitRepositoryManager;
@@ -98,6 +99,9 @@ class RefUpdateListener implements GitReferenceUpdatedListener {
   }
 
   private void createReviewNotes(Event e) {
+    if (!e.getRefName().startsWith(RefNames.REFS_HEADS)) {
+      return;
+    }
     try {
       retryHelper.execute(
           updateFactory -> {
@@ -105,14 +109,12 @@ class RefUpdateListener implements GitReferenceUpdatedListener {
             try (Repository git = repoManager.openRepository(projectName);
                 ReviewDb reviewDb = schema.open()) {
               CreateReviewNotes crn = reviewNotesFactory.create(reviewDb, projectName, git);
-              if (e.getRefName().startsWith("refs/heads/")) {
-                crn.createNotes(
-                    e.getRefName(),
-                    ObjectId.fromString(e.getOldObjectId()),
-                    ObjectId.fromString(e.getNewObjectId()),
-                    null);
-                crn.commitNotes();
-              }
+              crn.createNotes(
+                  e.getRefName(),
+                  ObjectId.fromString(e.getOldObjectId()),
+                  ObjectId.fromString(e.getNewObjectId()),
+                  null);
+              crn.commitNotes();
             }
             return null;
           });
