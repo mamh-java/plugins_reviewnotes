@@ -82,8 +82,7 @@ public class ExportReviewNotes extends SshCommand {
       return MultimapBuilder.hashKeys()
           .arrayListValues()
           .build(
-              notesFactory.create(
-                  db, notes -> notes.getChange().getStatus() == Change.Status.MERGED));
+              notesFactory.create(notes -> notes.getChange().getStatus() == Change.Status.MERGED));
     } catch (OrmException | IOException e) {
       stderr.println("Cannot read changes from database " + e.getMessage());
       return ImmutableListMultimap.of();
