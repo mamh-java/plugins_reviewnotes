@@ -17,7 +17,6 @@ package com.googlesource.gerrit.plugins.reviewnotes;
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.common.data.LabelType;
 import com.google.gerrit.common.data.LabelTypes;
-import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.registration.DynamicItem;
 import com.google.gerrit.git.LockFailureException;
 import com.google.gerrit.reviewdb.client.Change;
@@ -123,7 +122,7 @@ class CreateReviewNotes {
 
   void createNotes(
       String branch, ObjectId oldObjectId, ObjectId newObjectId, ProgressMonitor monitor)
-      throws StorageException, IOException {
+      throws IOException {
     if (ObjectId.zeroId().equals(newObjectId)) {
       return;
     }
@@ -164,8 +163,7 @@ class CreateReviewNotes {
     }
   }
 
-  void createNotes(List<ChangeNotes> notes, ProgressMonitor monitor)
-      throws StorageException, IOException {
+  void createNotes(List<ChangeNotes> notes, ProgressMonitor monitor) throws IOException {
     try (RevWalk rw = new RevWalk(git)) {
       if (monitor == null) {
         monitor = NullProgressMonitor.INSTANCE;
@@ -223,8 +221,7 @@ class CreateReviewNotes {
     }
   }
 
-  private ObjectId createNoteContent(ChangeNotes notes, PatchSet ps)
-      throws StorageException, IOException {
+  private ObjectId createNoteContent(ChangeNotes notes, PatchSet ps) throws IOException {
     HeaderFormatter fmt = new HeaderFormatter(gerritServerIdent.getTimeZone(), anonymousCowardName);
     if (ps != null) {
       try {
@@ -237,7 +234,7 @@ class CreateReviewNotes {
     return null;
   }
 
-  private PatchSet loadPatchSet(RevCommit c, String destBranch) throws StorageException {
+  private PatchSet loadPatchSet(RevCommit c, String destBranch) {
     String hash = c.name();
     for (ChangeData cd : queryProvider.get().byBranchCommit(project.get(), destBranch, hash)) {
       for (PatchSet ps : cd.patchSets()) {
@@ -250,7 +247,7 @@ class CreateReviewNotes {
   }
 
   private void createCodeReviewNote(ChangeNotes notes, PatchSet ps, HeaderFormatter fmt)
-      throws StorageException, NoSuchChangeException {
+      throws NoSuchChangeException {
     // This races with the label normalization/writeback done by MergeOp. It may
     // repeat some work, but results should be identical except in the case of
     // an additional race with a permissions change.
