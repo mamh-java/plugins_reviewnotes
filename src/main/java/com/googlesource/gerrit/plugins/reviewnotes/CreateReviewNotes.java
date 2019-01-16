@@ -17,6 +17,7 @@ package com.googlesource.gerrit.plugins.reviewnotes;
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.common.data.LabelType;
 import com.google.gerrit.common.data.LabelTypes;
+import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.registration.DynamicItem;
 import com.google.gerrit.git.LockFailureException;
 import com.google.gerrit.reviewdb.client.Change;
@@ -37,7 +38,6 @@ import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.query.change.InternalChangeQuery;
-import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
@@ -123,7 +123,7 @@ class CreateReviewNotes {
 
   void createNotes(
       String branch, ObjectId oldObjectId, ObjectId newObjectId, ProgressMonitor monitor)
-      throws OrmException, IOException {
+      throws StorageException, IOException {
     if (ObjectId.zeroId().equals(newObjectId)) {
       return;
     }
@@ -165,7 +165,7 @@ class CreateReviewNotes {
   }
 
   void createNotes(List<ChangeNotes> notes, ProgressMonitor monitor)
-      throws OrmException, IOException {
+      throws StorageException, IOException {
     try (RevWalk rw = new RevWalk(git)) {
       if (monitor == null) {
         monitor = NullProgressMonitor.INSTANCE;
@@ -224,7 +224,7 @@ class CreateReviewNotes {
   }
 
   private ObjectId createNoteContent(ChangeNotes notes, PatchSet ps)
-      throws OrmException, IOException {
+      throws StorageException, IOException {
     HeaderFormatter fmt = new HeaderFormatter(gerritServerIdent.getTimeZone(), anonymousCowardName);
     if (ps != null) {
       try {
@@ -237,7 +237,7 @@ class CreateReviewNotes {
     return null;
   }
 
-  private PatchSet loadPatchSet(RevCommit c, String destBranch) throws OrmException {
+  private PatchSet loadPatchSet(RevCommit c, String destBranch) throws StorageException {
     String hash = c.name();
     for (ChangeData cd : queryProvider.get().byBranchCommit(project.get(), destBranch, hash)) {
       for (PatchSet ps : cd.patchSets()) {
@@ -250,7 +250,7 @@ class CreateReviewNotes {
   }
 
   private void createCodeReviewNote(ChangeNotes notes, PatchSet ps, HeaderFormatter fmt)
-      throws OrmException, NoSuchChangeException {
+      throws StorageException, NoSuchChangeException {
     // This races with the label normalization/writeback done by MergeOp. It may
     // repeat some work, but results should be identical except in the case of
     // an additional race with a permissions change.
