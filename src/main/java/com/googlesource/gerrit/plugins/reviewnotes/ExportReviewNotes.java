@@ -21,7 +21,6 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.MultimapBuilder;
 import com.google.gerrit.extensions.restapi.RestApiException;
-import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.notedb.ChangeNotes;
@@ -76,8 +75,7 @@ public class ExportReviewNotes extends SshCommand {
     try {
       return MultimapBuilder.hashKeys()
           .arrayListValues()
-          .build(
-              notesFactory.create(notes -> notes.getChange().getStatus() == Change.Status.MERGED));
+          .build(notesFactory.create(notes -> notes.getChange().isMerged()));
     } catch (IOException e) {
       stderr.println("Cannot read changes from database " + e.getMessage());
       return ImmutableListMultimap.of();
