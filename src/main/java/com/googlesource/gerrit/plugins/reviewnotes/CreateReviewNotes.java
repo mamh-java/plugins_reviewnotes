@@ -283,7 +283,7 @@ class CreateReviewNotes {
       fmt.appendReviewedOn(uf, notes.getChange().getProject(), ps.getId().getParentKey());
     }
     fmt.appendProject(project.get());
-    fmt.appendBranch(change.getDest().get());
+    fmt.appendBranch(change.getDest().branch());
   }
 
   private ObjectInserter getInserter() {
