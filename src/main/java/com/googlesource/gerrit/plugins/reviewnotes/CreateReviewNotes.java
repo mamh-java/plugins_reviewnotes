@@ -148,7 +148,7 @@ class CreateReviewNotes {
       for (RevCommit c : rw) {
         PatchSet ps = loadPatchSet(c, branch);
         if (ps != null) {
-          ChangeNotes notes = notesFactory.create(project, ps.getId().getParentKey());
+          ChangeNotes notes = notesFactory.create(project, ps.getId().changeId());
           ObjectId content = createNoteContent(notes, ps);
           if (content != null) {
             monitor.update(1);
@@ -280,7 +280,7 @@ class CreateReviewNotes {
 
     UrlFormatter uf = urlFormatter.get();
     if (uf != null && uf.getWebUrl().isPresent()) {
-      fmt.appendReviewedOn(uf, notes.getChange().getProject(), ps.getId().getParentKey());
+      fmt.appendReviewedOn(uf, notes.getChange().getProject(), ps.getId().changeId());
     }
     fmt.appendProject(project.get());
     fmt.appendBranch(change.getDest().branch());
