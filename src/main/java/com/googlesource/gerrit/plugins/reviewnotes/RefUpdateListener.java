@@ -65,7 +65,7 @@ class RefUpdateListener implements GitReferenceUpdatedListener {
 
           @Override
           public Project.NameKey getProjectNameKey() {
-            return new Project.NameKey(e.getProjectName());
+            return Project.nameKey(e.getProjectName());
           }
 
           @Override
@@ -98,7 +98,7 @@ class RefUpdateListener implements GitReferenceUpdatedListener {
     try {
       retryHelper.execute(
           updateFactory -> {
-            Project.NameKey projectName = new Project.NameKey(e.getProjectName());
+            Project.NameKey projectName = Project.nameKey(e.getProjectName());
             try (Repository git = repoManager.openRepository(projectName)) {
               CreateReviewNotes crn = reviewNotesFactory.create(projectName, git);
               crn.createNotes(
