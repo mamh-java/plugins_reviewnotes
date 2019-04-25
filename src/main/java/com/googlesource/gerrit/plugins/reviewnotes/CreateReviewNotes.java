@@ -149,7 +149,7 @@ class CreateReviewNotes {
       for (RevCommit c : rw) {
         PatchSet ps = loadPatchSet(c, branch);
         if (ps != null) {
-          ChangeNotes notes = notesFactory.create(project, ps.getId().changeId());
+          ChangeNotes notes = notesFactory.create(project, ps.id().changeId());
           ObjectId content = createNoteContent(notes, ps);
           if (content != null) {
             monitor.update(1);
@@ -173,7 +173,7 @@ class CreateReviewNotes {
       for (ChangeNotes cn : notes) {
         monitor.update(1);
         PatchSet ps = psUtil.current(cn);
-        RevCommit commit = rw.parseCommit(ps.getCommitId());
+        RevCommit commit = rw.parseCommit(ps.commitId());
         getNotes().set(commit, createNoteContent(cn, ps));
         getMessage().append("* ").append(commit.getShortMessage()).append("\n");
       }
@@ -238,7 +238,7 @@ class CreateReviewNotes {
     String hash = c.name();
     for (ChangeData cd : queryProvider.get().byBranchCommit(project.get(), destBranch, hash)) {
       for (PatchSet ps : cd.patchSets()) {
-        if (ObjectIds.matchesAbbreviation(ps.getCommitId(), hash)) {
+        if (ObjectIds.matchesAbbreviation(ps.commitId(), hash)) {
           return ps;
         }
       }
@@ -255,7 +255,7 @@ class CreateReviewNotes {
     // commit time so we will be able to skip this normalization step.
     Change change = notes.getChange();
     PatchSetApproval submit = null;
-    for (PatchSetApproval a : approvalsUtil.byPatchSet(notes, ps.getId(), null, null)) {
+    for (PatchSetApproval a : approvalsUtil.byPatchSet(notes, ps.id(), null, null)) {
       if (a.getValue() == 0) {
         // Ignore 0 values.
       } else if (a.isLegacySubmit()) {
@@ -280,7 +280,7 @@ class CreateReviewNotes {
 
     UrlFormatter uf = urlFormatter.get();
     if (uf != null && uf.getWebUrl().isPresent()) {
-      fmt.appendReviewedOn(uf, notes.getChange().getProject(), ps.getId().changeId());
+      fmt.appendReviewedOn(uf, notes.getChange().getProject(), ps.id().changeId());
     }
     fmt.appendProject(project.get());
     fmt.appendBranch(change.getDest().branch());
