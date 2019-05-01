@@ -256,26 +256,25 @@ class CreateReviewNotes {
     Change change = notes.getChange();
     PatchSetApproval submit = null;
     for (PatchSetApproval a : approvalsUtil.byPatchSet(notes, ps.id(), null, null)) {
-      if (a.getValue() == 0) {
+      if (a.value() == 0) {
         // Ignore 0 values.
       } else if (a.isLegacySubmit()) {
         submit = a;
       } else {
-        LabelType type = labelTypes.byLabel(a.getLabelId());
+        LabelType type = labelTypes.byLabel(a.labelId());
         if (type != null) {
           fmt.appendApproval(
               type,
-              a.getValue(),
-              a.getAccountId(),
-              accountCache.get(a.getAccountId()).map(AccountState::getAccount));
+              a.value(),
+              a.accountId(),
+              accountCache.get(a.accountId()).map(AccountState::getAccount));
         }
       }
     }
     if (submit != null) {
       fmt.appendSubmittedBy(
-          submit.getAccountId(),
-          accountCache.get(submit.getAccountId()).map(AccountState::getAccount));
-      fmt.appendSubmittedAt(submit.getGranted());
+          submit.accountId(), accountCache.get(submit.accountId()).map(AccountState::getAccount));
+      fmt.appendSubmittedAt(submit.granted());
     }
 
     UrlFormatter uf = urlFormatter.get();
