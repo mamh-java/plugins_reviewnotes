@@ -50,6 +50,8 @@ public class ExportReviewNotes extends SshCommand {
 
   @Inject private RetryHelper retryHelper;
 
+  private static final Object lock = new Object();
+
   private ListMultimap<Project.NameKey, ChangeNotes> changes;
   private ThreadSafeProgressMonitor monitor;
 
@@ -107,7 +109,7 @@ public class ExportReviewNotes extends SshCommand {
   }
 
   private Map.Entry<Project.NameKey, List<ChangeNotes>> next() {
-    synchronized (changes) {
+    synchronized (lock) {
       if (changes.isEmpty()) {
         return null;
       }
