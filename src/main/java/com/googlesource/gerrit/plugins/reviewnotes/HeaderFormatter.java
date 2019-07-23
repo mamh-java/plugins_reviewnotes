@@ -76,20 +76,20 @@ class HeaderFormatter {
    */
   private void appendUserData(Account.Id accountId, Optional<Account> account) {
     checkState(
-        !account.isPresent() || accountId.equals(account.get().getId()), "mismatching account IDs");
+        !account.isPresent() || accountId.equals(account.get().id()), "mismatching account IDs");
 
     boolean needSpace = false;
     boolean wroteData = false;
 
     if (account.isPresent()) {
-      String fullName = account.get().getFullName();
+      String fullName = account.get().fullName();
       if (!Strings.isNullOrEmpty(fullName)) {
         sb.append(fullName);
         needSpace = true;
         wroteData = true;
       }
 
-      String preferredEmail = account.get().getPreferredEmail();
+      String preferredEmail = account.get().preferredEmail();
       if (!Strings.isNullOrEmpty(preferredEmail)) {
         if (needSpace) {
           sb.append(" ");
