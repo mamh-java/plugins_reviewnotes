@@ -267,13 +267,13 @@ class CreateReviewNotes {
               type,
               a.value(),
               a.accountId(),
-              accountCache.get(a.accountId()).map(AccountState::getAccount));
+              accountCache.get(a.accountId()).map(AccountState::account));
         }
       }
     }
     if (submit != null) {
       fmt.appendSubmittedBy(
-          submit.accountId(), accountCache.get(submit.accountId()).map(AccountState::getAccount));
+          submit.accountId(), accountCache.get(submit.accountId()).map(AccountState::account));
       fmt.appendSubmittedAt(submit.granted());
     }
 
