@@ -90,26 +90,27 @@ public class ExportReviewNotes extends SshCommand {
 
   private void export(Project.NameKey project, List<ChangeNotes> notes)
       throws RestApiException, UpdateException {
-    retryHelper.execute(
-        updateFactory -> {
-          try (Repository git = gitManager.openRepository(project)) {
-            CreateReviewNotes crn = reviewNotesFactory.create(project, git);
-            crn.createNotes(notes, monitor);
-            crn.commitNotes();
-          } catch (RepositoryNotFoundException e) {
-            stderr.println("Unable to open project: " + project.get());
-          }
-          return null;
-        },
-        RetryHelper.options()
-            .listener(
-                new RetryListener() {
-                  @Override
-                  public <V> void onRetry(Attempt<V> attempt) {
-                    monitor.update(-notes.size());
-                  }
-                })
-            .build());
+    retryHelper
+        .changeUpdate(
+            "exportReviewNotes",
+            updateFactory -> {
+              try (Repository git = gitManager.openRepository(project)) {
+                CreateReviewNotes crn = reviewNotesFactory.create(project, git);
+                crn.createNotes(notes, monitor);
+                crn.commitNotes();
+              } catch (RepositoryNotFoundException e) {
+                stderr.println("Unable to open project: " + project.get());
+              }
+              return null;
+            })
+        .listener(
+            new RetryListener() {
+              @Override
+              public <V> void onRetry(Attempt<V> attempt) {
+                monitor.update(-notes.size());
+              }
+            })
+        .call();
   }
 
   private Map.Entry<Project.NameKey, List<ChangeNotes>> next() {
