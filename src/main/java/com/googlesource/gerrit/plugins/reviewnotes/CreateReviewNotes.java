@@ -14,6 +14,8 @@
 
 package com.googlesource.gerrit.plugins.reviewnotes;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.common.data.LabelType;
 import com.google.gerrit.common.data.LabelTypes;
@@ -229,7 +231,7 @@ class CreateReviewNotes {
     if (ps != null) {
       try {
         createCodeReviewNote(notes, ps, fmt);
-        return getInserter().insert(Constants.OBJ_BLOB, fmt.toString().getBytes("UTF-8"));
+        return getInserter().insert(Constants.OBJ_BLOB, fmt.toString().getBytes(UTF_8));
       } catch (NoSuchChangeException e) {
         throw new IOException(e);
       }
