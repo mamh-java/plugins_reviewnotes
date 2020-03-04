@@ -46,6 +46,7 @@ import com.google.inject.assistedinject.Assisted;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.Constants;
@@ -103,15 +104,15 @@ class CreateReviewNotes {
     this.gerritServerIdent = gerritIdent;
     this.accountCache = accountCache;
     this.anonymousCowardName = anonymousCowardName;
-    ProjectState projectState = projectCache.get(project);
-    if (projectState == null) {
+    Optional<ProjectState> projectState = projectCache.get(project);
+    if (!projectState.isPresent()) {
       logger.atSevere().log(
           "Could not obtain available labels for project %s."
               + " Expect missing labels in its review notes.",
           project.get());
       this.labelTypes = new LabelTypes(Collections.<LabelType>emptyList());
     } else {
-      this.labelTypes = projectState.getLabelTypes();
+      this.labelTypes = projectState.get().getLabelTypes();
     }
     this.approvalsUtil = approvalsUtil;
     this.notesFactory = notesFactory;
