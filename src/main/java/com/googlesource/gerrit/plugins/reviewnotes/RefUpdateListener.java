@@ -80,7 +80,7 @@ class RefUpdateListener implements GitReferenceUpdatedListener {
 
           @Override
           public String toString() {
-            return "create-review-notes";
+            return "create-review-notes-for-" + e.getProjectName();
           }
         };
     if (async) {
