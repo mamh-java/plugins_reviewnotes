@@ -18,9 +18,9 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.Strings;
 import com.google.gerrit.common.data.LabelType;
-import com.google.gerrit.common.data.LabelValue;
 import com.google.gerrit.entities.Account;
 import com.google.gerrit.entities.Change;
+import com.google.gerrit.entities.LabelValue;
 import com.google.gerrit.entities.Project;
 import com.google.gerrit.server.config.UrlFormatter;
 import java.text.DateFormat;
