@@ -264,10 +264,10 @@ class CreateReviewNotes {
       } else if (a.isLegacySubmit()) {
         submit = a;
       } else {
-        LabelType type = labelTypes.byLabel(a.labelId());
-        if (type != null) {
+        Optional<LabelType> type = labelTypes.byLabel(a.labelId());
+        if (type.isPresent()) {
           fmt.appendApproval(
-              type,
+              type.get(),
               a.value(),
               a.accountId(),
               accountCache.get(a.accountId()).map(AccountState::account));
