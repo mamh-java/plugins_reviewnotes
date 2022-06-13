@@ -141,7 +141,7 @@ class CreateReviewNotes {
           markUninteresting(git, branch, rw, oldObjectId);
         }
       } catch (Exception e) {
-        logger.atSevere().withCause(e).log(e.getMessage());
+        logger.atSevere().withCause(e).log("%s", e.getMessage());
         return;
       }
 
