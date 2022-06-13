@@ -114,7 +114,7 @@ class RefUpdateListener implements GitReferenceUpdatedListener {
               })
           .call();
     } catch (RestApiException | UpdateException x) {
-      logger.atSevere().withCause(x).log(x.getMessage());
+      logger.atSevere().withCause(x).log("%s", x.getMessage());
     }
   }
 }
