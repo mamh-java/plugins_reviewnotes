@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.MultimapBuilder;
+import com.google.gerrit.common.Nullable;
 import com.google.gerrit.entities.Project;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.server.git.GitRepositoryManager;
@@ -113,6 +114,7 @@ public class ExportReviewNotes extends SshCommand {
         .call();
   }
 
+  @Nullable
   private Map.Entry<Project.NameKey, List<ChangeNotes>> next() {
     synchronized (lock) {
       if (changes.isEmpty()) {

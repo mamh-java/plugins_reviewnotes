@@ -17,6 +17,7 @@ package com.googlesource.gerrit.plugins.reviewnotes;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.flogger.FluentLogger;
+import com.google.gerrit.common.Nullable;
 import com.google.gerrit.entities.Change;
 import com.google.gerrit.entities.LabelType;
 import com.google.gerrit.entities.LabelTypes;
@@ -224,6 +225,7 @@ class CreateReviewNotes {
     }
   }
 
+  @Nullable
   private ObjectId createNoteContent(ChangeNotes notes, PatchSet ps) throws IOException {
     HeaderFormatter fmt = new HeaderFormatter(gerritServerIdent.getTimeZone(), anonymousCowardName);
     if (ps != null) {
@@ -237,6 +239,7 @@ class CreateReviewNotes {
     return null;
   }
 
+  @Nullable
   private PatchSet loadPatchSet(RevCommit c, String destBranch) {
     String hash = c.name();
     for (ChangeData cd : queryProvider.get().byBranchCommit(project.get(), destBranch, hash)) {
