@@ -15,6 +15,7 @@
 package com.googlesource.gerrit.plugins.reviewnotes;
 
 import com.google.common.flogger.FluentLogger;
+import com.google.gerrit.common.Nullable;
 import com.google.gerrit.entities.Project;
 import com.google.gerrit.entities.RefNames;
 import com.google.gerrit.extensions.events.GitReferenceUpdatedListener;
@@ -69,6 +70,7 @@ class RefUpdateListener implements GitReferenceUpdatedListener {
           }
 
           @Override
+          @Nullable
           public String getRemoteName() {
             return null;
           }
