@@ -230,7 +230,7 @@ class CreateReviewNotes {
 
   @Nullable
   private ObjectId createNoteContent(ChangeNotes notes, PatchSet ps) throws IOException {
-    HeaderFormatter fmt = new HeaderFormatter(gerritServerIdent.getTimeZone(), anonymousCowardName);
+    HeaderFormatter fmt = new HeaderFormatter(gerritServerIdent.getZoneId(), anonymousCowardName);
     if (ps != null) {
       try {
         createCodeReviewNote(notes, ps, fmt);

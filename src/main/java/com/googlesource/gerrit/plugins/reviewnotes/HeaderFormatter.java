@@ -24,10 +24,10 @@ import com.google.gerrit.entities.LabelValue;
 import com.google.gerrit.entities.Project;
 import com.google.gerrit.server.config.UrlFormatter;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.TimeZone;
 
 /**
  * Formatters for code review note headers.
@@ -42,11 +42,11 @@ class HeaderFormatter {
   private final String anonymousCowardName;
   private final StringBuilder sb = new StringBuilder();
 
-  HeaderFormatter(TimeZone tz, String anonymousCowardName) {
+  HeaderFormatter(ZoneId zoneid, String anonymousCowardName) {
     rfc2822DateFormatter =
         DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss Z")
             .withLocale(Locale.US)
-            .withZone(tz.toZoneId());
+            .withZone(zoneid);
     this.anonymousCowardName = anonymousCowardName;
   }
 
